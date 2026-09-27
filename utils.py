@@ -14,6 +14,23 @@ def setup_utf8_encoding():
         except Exception:
             pass
 
+def setup_cookies_file():
+    """
+    YOUTUBE_COOKIES 환경변수(GitHub Secrets 등)가 존재하면 cookies.txt 파일로 저장하여 경로 반환
+    """
+    cookies_content = os.environ.get("YOUTUBE_COOKIES")
+    cookie_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies.txt")
+    if cookies_content and cookies_content.strip():
+        try:
+            with open(cookie_path, "w", encoding="utf-8") as f:
+                f.write(cookies_content.strip())
+            return cookie_path
+        except Exception as e:
+            print(f"⚠️ 쿠키 파일 생성 실패: {e}", flush=True)
+    if os.path.exists(cookie_path):
+        return cookie_path
+    return None
+
 # 파이썬 패키지 동적 설치 및 임포트 헬퍼
 def install_and_import(package):
     import importlib
