@@ -26,6 +26,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Setup Deno JS Runtime (for yt-dlp YouTube Bot Challenge Solver)
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
       - name: Install System Dependencies (FFmpeg)
         run: |
           sudo apt-get update
