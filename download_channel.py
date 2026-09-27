@@ -61,8 +61,6 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
         'ignoreerrors': True,
         'extractor_args': extractor_args
     }
-    if cookie_file:
-        flat_meta_opts['cookiefile'] = cookie_file
 
     new_urls_to_process = []
 
@@ -108,8 +106,6 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
             'ignoreerrors': True,
             'extractor_args': extractor_args
         }
-        if cookie_file:
-            single_meta_opts['cookiefile'] = cookie_file
 
         for v_url in new_urls_to_process:
             v_duration = 0
@@ -153,8 +149,6 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
                 'extractor_args': extractor_args,
                 'quiet': False,
             }
-            if cookie_file:
-                ydl_opts['cookiefile'] = cookie_file
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 download_info = ydl.extract_info(v_url, download=True)
