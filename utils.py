@@ -33,11 +33,12 @@ def setup_cookies_file():
 
 def get_extractor_args(cookie_file=None):
     """
-    유튜브 봇 감지 및 JS n-challenge 차단을 우회하기 위한 최적 extractor_args 반환 (android 전용)
+    유튜브 봇 감지 및 web 클라이언트 2차 차단을 방지하기 위해 android 전용 + 웹페이지 스킵 설정 사용
     """
     return {
         'youtube': {
             'player_client': ['android'],
+            'player_skip': ['configs', 'webpage', 'web', 'mweb'],
             'skip': ['hls', 'dash']
         }
     }
