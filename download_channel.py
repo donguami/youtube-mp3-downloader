@@ -2,14 +2,14 @@ import os
 import sys
 import argparse
 from session_manager import DownloadSession, SessionManager
-from utils import setup_utf8_encoding, install_and_import, get_history_ids, calculate_optimal_bitrate, check_and_update_ytdlp
+from utils import setup_utf8_encoding, install_and_import, get_history_ids, calculate_optimal_bitrate, check_and_update_ytdlp, setup_cookies_file
 from telegram_sender import send_telegram_audio
 
 setup_utf8_encoding()
 
 COMMON_EXTRACTOR_ARGS = {
     'youtube': {
-        'player_client': ['android'],
+        'player_client': ['android', 'ios'],
         'skip': ['hls', 'dash']
     }
 }
@@ -57,6 +57,8 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
 
     history_ids = get_history_ids(history_file)
 
+    cookie_file = setup_cookies_file()
+
     print("🔍 신규 다운로드 대상 탐색 중 (기존 다운로드 항목 자동 제외)...", flush=True)
     
     flat_meta_opts = {
@@ -65,6 +67,8 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
         'ignoreerrors': True,
         'extractor_args': COMMON_EXTRACTOR_ARGS
     }
+    if cookie_file:
+        flat_meta_opts['cookiefile'] = cookie_file
 
     new_urls_to_process = []
 
@@ -110,6 +114,8 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
             'ignoreerrors': True,
             'extractor_args': COMMON_EXTRACTOR_ARGS
         }
+        if cookie_file:
+            single_meta_opts['cookiefile'] = cookie_file
 
         for v_url in new_urls_to_process:
             v_duration = 0
@@ -129,7 +135,7 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
             optimal_quality = calculate_optimal_bitrate(v_duration, max_mb=45, user_quality=quality)
 
             ydl_opts = {
-                'format': 'bestaudio/best',
+                'format': 'ba/b/18',
                 'ffmpeg_location': script_dir,
                 'outtmpl': output_template,
                 'download_archive': history_file,
@@ -153,6 +159,8 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
                 'extractor_args': COMMON_EXTRACTOR_ARGS,
                 'quiet': False,
             }
+            if cookie_file:
+                ydl_opts['cookiefile'] = cookie_file
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 download_info = ydl.extract_info(v_url, download=True)
