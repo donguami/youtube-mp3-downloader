@@ -33,8 +33,6 @@ def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=Fals
             'skip_download': True,
             'extractor_args': extractor_args
         }
-        if cookie_file:
-            meta_opts['cookiefile'] = cookie_file
 
         with yt_dlp.YoutubeDL(meta_opts) as ydl:
             info = ydl.extract_info(youtube_url, download=False)
@@ -71,8 +69,6 @@ def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=Fals
         'extractor_args': extractor_args,
         'quiet': False,
     }
-    if cookie_file:
-        ydl_opts['cookiefile'] = cookie_file
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
