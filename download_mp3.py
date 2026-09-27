@@ -6,6 +6,13 @@ from telegram_sender import send_telegram_audio
 
 setup_utf8_encoding()
 
+COMMON_EXTRACTOR_ARGS = {
+    'youtube': {
+        'player_client': ['android', 'ios', 'mweb'],
+        'skip': ['hls', 'dash']
+    }
+}
+
 def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=False):
     check_and_update_ytdlp()
     install_and_import("yt_dlp")
@@ -25,7 +32,11 @@ def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=Fals
     channel = "YouTube"
 
     try:
-        meta_opts = {'quiet': True, 'skip_download': True}
+        meta_opts = {
+            'quiet': True,
+            'skip_download': True,
+            'extractor_args': COMMON_EXTRACTOR_ARGS
+        }
         with yt_dlp.YoutubeDL(meta_opts) as ydl:
             info = ydl.extract_info(youtube_url, download=False)
             if info:
@@ -42,6 +53,7 @@ def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=Fals
         'ffmpeg_location': script_dir,
         'outtmpl': os.path.join(output_dir, '%(title)s.%(ext)s'),
         'writethumbnail': True,
+        'ignoreerrors': True,
         'postprocessors': [
             {
                 'key': 'FFmpegExtractAudio',
@@ -57,7 +69,7 @@ def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=Fals
                 'already_have_thumbnail': False,
             }
         ],
-        'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+        'extractor_args': COMMON_EXTRACTOR_ARGS,
         'quiet': False,
     }
 
