@@ -7,6 +7,13 @@ from telegram_sender import send_telegram_audio
 
 setup_utf8_encoding()
 
+COMMON_EXTRACTOR_ARGS = {
+    'youtube': {
+        'player_client': ['android', 'ios', 'mweb'],
+        'skip': ['hls', 'dash']
+    }
+}
+
 def process_download(target_type: str, target: str, quality: str = "128k", cnt: int = 1, download_path: str = None, session_name: str = None, send_telegram: bool = False):
     """
     세션명 기반 폴더 관리 + 신규 다운로드 건수(cnt) 보장 + 재생시간 기반 최적 음질 산출 + 텔레그램 전송 다운로드 처리 함수
@@ -52,16 +59,18 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
 
     print("🔍 신규 다운로드 대상 탐색 중 (기존 다운로드 항목 자동 제외)...", flush=True)
     
-    meta_opts = {
-        'extract_flat': False,
+    # 1. extract_flat = True 로 빠르게 채널의 영상 목록 스캔
+    flat_meta_opts = {
+        'extract_flat': True,
         'quiet': True,
         'ignoreerrors': True,
+        'extractor_args': COMMON_EXTRACTOR_ARGS
     }
 
-    new_items_to_download = []
+    new_urls_to_process = []
 
     try:
-        with yt_dlp.YoutubeDL(meta_opts) as ydl:
+        with yt_dlp.YoutubeDL(flat_meta_opts) as ydl:
             meta = ydl.extract_info(download_url, download=False)
             if meta:
                 entries = meta.get('entries', []) if 'entries' in meta else [meta]
@@ -71,26 +80,18 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
                         continue
                     v_id = entry.get('id')
                     v_url = entry.get('url') or entry.get('webpage_url') or f"https://www.youtube.com/watch?v={v_id}"
-                    v_duration = entry.get('duration', 0)
-                    v_title = entry.get('title', 'Audio')
-                    v_channel = entry.get('uploader') or entry.get('channel') or clean_target if target_type == "channel" else "YouTube"
                     
                     history_key = f"youtube {v_id}"
                     if v_id and (history_key in history_ids or v_id in history_ids):
                         continue
                     
-                    new_items_to_download.append({
-                        'url': v_url,
-                        'duration': v_duration,
-                        'title': v_title,
-                        'channel': v_channel
-                    })
-                    if len(new_items_to_download) >= int(cnt):
+                    new_urls_to_process.append(v_url)
+                    if len(new_urls_to_process) >= int(cnt):
                         break
     except Exception as e:
-        print(f"⚠️ 메타데이터 검색 중 알림: {e}", flush=True)
+        print(f"⚠️ 채널 목록 탐색 중 알림: {e}", flush=True)
 
-    new_count = len(new_items_to_download)
+    new_count = len(new_urls_to_process)
 
     if new_count == 0:
         print("\n" + "!" * 65)
@@ -104,11 +105,26 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
     downloaded_items = []
 
     try:
-        for item in new_items_to_download:
-            v_url = item['url']
-            v_duration = item['duration']
-            v_title = item['title']
-            v_channel = item['channel']
+        single_meta_opts = {
+            'quiet': True,
+            'skip_download': True,
+            'extractor_args': COMMON_EXTRACTOR_ARGS
+        }
+
+        for v_url in new_urls_to_process:
+            v_duration = 0
+            v_title = "Audio"
+            v_channel = clean_target if target_type == "channel" else "YouTube"
+
+            try:
+                with yt_dlp.YoutubeDL(single_meta_opts) as ydl:
+                    info = ydl.extract_info(v_url, download=False)
+                    if info:
+                        v_duration = info.get('duration', 0)
+                        v_title = info.get('title', v_title)
+                        v_channel = info.get('uploader') or info.get('channel') or v_channel
+            except Exception as e:
+                print(f"⚠️ 메타데이터 미리보기 알림 ({v_url}): {e}", flush=True)
 
             optimal_quality = calculate_optimal_bitrate(v_duration, max_mb=45, user_quality=quality)
 
@@ -134,7 +150,7 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
                         'already_have_thumbnail': False,
                     }
                 ],
-                'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+                'extractor_args': COMMON_EXTRACTOR_ARGS,
                 'quiet': False,
             }
 
@@ -217,7 +233,7 @@ if __name__ == "__main__":
                 presets = manager.list_presets()
 
                 print("=" * 65)
-                print(" 🎵 파이썬 유튜브 작업 세션 다운로더 (v2.5 yt-dlp 자동 업데이트 지원)")
+                print(" 🎵 파이썬 유튜브 작업 세션 다운로더 (v2.6 봇 감지 방지 고속 버전)")
                 print("=" * 65)
 
                 if presets:
