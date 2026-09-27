@@ -33,23 +33,14 @@ def setup_cookies_file():
 
 def get_extractor_args(cookie_file=None):
     """
-    쿠키 존재 여부에 따라 최적의 extractor_args를 동적으로 생성
-    - 쿠키 보유 시: player_client 오버라이드를 해제하여 yt-dlp 기본 인증 클라이언트 체인(visionos, web 등)을 사용
-    - 쿠키 미보유 시: android, ios 클라이언트를 사용하여 봇 감지 우회
+    유튜브 봇 감지 및 JS n-challenge 차단을 우회하기 위한 최적 extractor_args 반환 (android 전용)
     """
-    if cookie_file:
-        return {
-            'youtube': {
-                'skip': ['hls', 'dash']
-            }
+    return {
+        'youtube': {
+            'player_client': ['android'],
+            'skip': ['hls', 'dash']
         }
-    else:
-        return {
-            'youtube': {
-                'player_client': ['android', 'ios'],
-                'skip': ['hls', 'dash']
-            }
-        }
+    }
 
 # 파이썬 패키지 동적 설치 및 임포트 헬퍼
 def install_and_import(package):
