@@ -1,14 +1,14 @@
 import os
 import sys
 import argparse
-from utils import setup_utf8_encoding, install_and_import, calculate_optimal_bitrate, check_and_update_ytdlp
+from utils import setup_utf8_encoding, install_and_import, calculate_optimal_bitrate, check_and_update_ytdlp, setup_cookies_file
 from telegram_sender import send_telegram_audio
 
 setup_utf8_encoding()
 
 COMMON_EXTRACTOR_ARGS = {
     'youtube': {
-        'player_client': ['android'],
+        'player_client': ['android', 'ios'],
         'skip': ['hls', 'dash']
     }
 }
@@ -31,12 +31,17 @@ def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=Fals
     title = "Audio"
     channel = "YouTube"
 
+    cookie_file = setup_cookies_file()
+
     try:
         meta_opts = {
             'quiet': True,
             'skip_download': True,
             'extractor_args': COMMON_EXTRACTOR_ARGS
         }
+        if cookie_file:
+            meta_opts['cookiefile'] = cookie_file
+
         with yt_dlp.YoutubeDL(meta_opts) as ydl:
             info = ydl.extract_info(youtube_url, download=False)
             if info:
@@ -49,7 +54,7 @@ def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=Fals
     optimal_quality = calculate_optimal_bitrate(duration, max_mb=45, user_quality=quality)
 
     ydl_opts = {
-        'format': 'bestaudio/best',
+        'format': 'ba/b/18',
         'ffmpeg_location': script_dir,
         'outtmpl': os.path.join(output_dir, '%(title)s.%(ext)s'),
         'writethumbnail': True,
@@ -72,6 +77,8 @@ def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=Fals
         'extractor_args': COMMON_EXTRACTOR_ARGS,
         'quiet': False,
     }
+    if cookie_file:
+        ydl_opts['cookiefile'] = cookie_file
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
