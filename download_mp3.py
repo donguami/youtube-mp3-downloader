@@ -1,17 +1,10 @@
 import os
 import sys
 import argparse
-from utils import setup_utf8_encoding, install_and_import, calculate_optimal_bitrate, check_and_update_ytdlp, setup_cookies_file
+from utils import setup_utf8_encoding, install_and_import, calculate_optimal_bitrate, check_and_update_ytdlp, setup_cookies_file, get_extractor_args
 from telegram_sender import send_telegram_audio
 
 setup_utf8_encoding()
-
-COMMON_EXTRACTOR_ARGS = {
-    'youtube': {
-        'player_client': ['android', 'ios'],
-        'skip': ['hls', 'dash']
-    }
-}
 
 def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=False):
     check_and_update_ytdlp()
@@ -32,12 +25,13 @@ def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=Fals
     channel = "YouTube"
 
     cookie_file = setup_cookies_file()
+    extractor_args = get_extractor_args(cookie_file)
 
     try:
         meta_opts = {
             'quiet': True,
             'skip_download': True,
-            'extractor_args': COMMON_EXTRACTOR_ARGS
+            'extractor_args': extractor_args
         }
         if cookie_file:
             meta_opts['cookiefile'] = cookie_file
@@ -74,7 +68,7 @@ def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=Fals
                 'already_have_thumbnail': False,
             }
         ],
-        'extractor_args': COMMON_EXTRACTOR_ARGS,
+        'extractor_args': extractor_args,
         'quiet': False,
     }
     if cookie_file:
