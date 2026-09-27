@@ -1,0 +1,16 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Windows executables (GitHub Actions installs Linux ffmpeg / yt-dlp automatically)
+*.exe
+*.zip
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Download outputs (optional)
+# sessions/
