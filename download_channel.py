@@ -129,7 +129,7 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
             optimal_quality = calculate_optimal_bitrate(v_duration, max_mb=45, user_quality=quality)
 
             ydl_opts = {
-                'format': 'ba/b/18',
+                'format': '18/ba/b/best',
                 'ffmpeg_location': script_dir,
                 'outtmpl': output_template,
                 'download_archive': history_file,
