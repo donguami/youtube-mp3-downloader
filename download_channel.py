@@ -9,7 +9,7 @@ setup_utf8_encoding()
 
 COMMON_EXTRACTOR_ARGS = {
     'youtube': {
-        'player_client': ['android', 'ios', 'mweb', 'web'],
+        'player_client': ['android'],
         'skip': ['hls', 'dash']
     }
 }
