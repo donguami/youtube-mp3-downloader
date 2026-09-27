@@ -9,7 +9,7 @@ setup_utf8_encoding()
 
 COMMON_EXTRACTOR_ARGS = {
     'youtube': {
-        'player_client': ['android', 'ios', 'mweb'],
+        'player_client': ['android', 'ios', 'mweb', 'web'],
         'skip': ['hls', 'dash']
     }
 }
@@ -59,7 +59,6 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
 
     print("🔍 신규 다운로드 대상 탐색 중 (기존 다운로드 항목 자동 제외)...", flush=True)
     
-    # 1. extract_flat = True 로 빠르게 채널의 영상 목록 스캔
     flat_meta_opts = {
         'extract_flat': True,
         'quiet': True,
@@ -108,6 +107,7 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
         single_meta_opts = {
             'quiet': True,
             'skip_download': True,
+            'ignoreerrors': True,
             'extractor_args': COMMON_EXTRACTOR_ARGS
         }
 
@@ -156,29 +156,30 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 download_info = ydl.extract_info(v_url, download=True)
-                mp3_filename = ydl.prepare_filename(download_info)
-                mp3_filepath = os.path.splitext(mp3_filename)[0] + ".mp3"
-                if os.path.exists(mp3_filepath):
-                    downloaded_items.append({
-                        'filepath': mp3_filepath,
-                        'metadata': {
-                            'title': v_title,
-                            'channel': v_channel,
-                            'duration': v_duration,
-                            'quality': optimal_quality
-                        }
-                    })
+                if download_info:
+                    mp3_filename = ydl.prepare_filename(download_info)
+                    mp3_filepath = os.path.splitext(mp3_filename)[0] + ".mp3"
+                    if os.path.exists(mp3_filepath):
+                        downloaded_items.append({
+                            'filepath': mp3_filepath,
+                            'metadata': {
+                                'title': v_title,
+                                'channel': v_channel,
+                                'duration': v_duration,
+                                'quality': optimal_quality
+                            }
+                        })
 
         msg = None
-        if new_count < int(cnt):
-            msg = f"요청 건수({cnt}개)보다 남아있는 신규 영상({new_count}개)이 적어 신규 영상 전체를 다운로드했습니다."
-
-        session.end_session(downloaded_cnt=new_count, success=True, message=msg)
-
-        if send_telegram and downloaded_items:
-            print("\n[+] 텔레그램으로 MP3 파일 전송을 시작합니다...", flush=True)
-            for item in downloaded_items:
-                send_telegram_audio(item['filepath'], metadata=item['metadata'])
+        downloaded_count = len(downloaded_items)
+        if downloaded_count > 0:
+            session.end_session(downloaded_cnt=downloaded_count, success=True, message=msg)
+            if send_telegram:
+                print("\n[+] 텔레그램으로 MP3 파일 전송을 시작합니다...", flush=True)
+                for item in downloaded_items:
+                    send_telegram_audio(item['filepath'], metadata=item['metadata'])
+        else:
+            session.end_session(downloaded_cnt=0, success=False, message="MP3 변환된 파일을 찾을 수 없습니다.")
 
     except Exception as e:
         session.end_session(downloaded_cnt=0, success=False, message=str(e))
