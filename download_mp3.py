@@ -8,7 +8,7 @@ setup_utf8_encoding()
 
 COMMON_EXTRACTOR_ARGS = {
     'youtube': {
-        'player_client': ['android', 'ios', 'mweb'],
+        'player_client': ['android'],
         'skip': ['hls', 'dash']
     }
 }
@@ -76,8 +76,9 @@ def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=Fals
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             download_info = ydl.extract_info(youtube_url, download=True)
-            mp3_filename = ydl.prepare_filename(download_info)
-            mp3_filepath = os.path.splitext(mp3_filename)[0] + ".mp3"
+            if download_info:
+                mp3_filename = ydl.prepare_filename(download_info)
+                mp3_filepath = os.path.splitext(mp3_filename)[0] + ".mp3"
 
         print("\n✅ MP3 변환 및 다운로드가 완료되었습니다!", flush=True)
 
