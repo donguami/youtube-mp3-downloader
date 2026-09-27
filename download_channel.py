@@ -2,17 +2,10 @@ import os
 import sys
 import argparse
 from session_manager import DownloadSession, SessionManager
-from utils import setup_utf8_encoding, install_and_import, get_history_ids, calculate_optimal_bitrate, check_and_update_ytdlp, setup_cookies_file
+from utils import setup_utf8_encoding, install_and_import, get_history_ids, calculate_optimal_bitrate, check_and_update_ytdlp, setup_cookies_file, get_extractor_args
 from telegram_sender import send_telegram_audio
 
 setup_utf8_encoding()
-
-COMMON_EXTRACTOR_ARGS = {
-    'youtube': {
-        'player_client': ['android', 'ios'],
-        'skip': ['hls', 'dash']
-    }
-}
 
 def process_download(target_type: str, target: str, quality: str = "128k", cnt: int = 1, download_path: str = None, session_name: str = None, send_telegram: bool = False):
     """
@@ -58,6 +51,7 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
     history_ids = get_history_ids(history_file)
 
     cookie_file = setup_cookies_file()
+    extractor_args = get_extractor_args(cookie_file)
 
     print("🔍 신규 다운로드 대상 탐색 중 (기존 다운로드 항목 자동 제외)...", flush=True)
     
@@ -65,7 +59,7 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
         'extract_flat': True,
         'quiet': True,
         'ignoreerrors': True,
-        'extractor_args': COMMON_EXTRACTOR_ARGS
+        'extractor_args': extractor_args
     }
     if cookie_file:
         flat_meta_opts['cookiefile'] = cookie_file
@@ -112,7 +106,7 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
             'quiet': True,
             'skip_download': True,
             'ignoreerrors': True,
-            'extractor_args': COMMON_EXTRACTOR_ARGS
+            'extractor_args': extractor_args
         }
         if cookie_file:
             single_meta_opts['cookiefile'] = cookie_file
@@ -156,7 +150,7 @@ def process_download(target_type: str, target: str, quality: str = "128k", cnt: 
                         'already_have_thumbnail': False,
                     }
                 ],
-                'extractor_args': COMMON_EXTRACTOR_ARGS,
+                'extractor_args': extractor_args,
                 'quiet': False,
             }
             if cookie_file:
