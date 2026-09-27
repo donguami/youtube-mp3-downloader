@@ -1,0 +1,43 @@
+name: YouTube MP3 Channel Monitor & Telegram Delivery
+
+on:
+  schedule:
+    # 한국시간(KST) 기준 매일 오전 9시, 오후 9시 (UTC 00:00, 12:00) 하루 2회 자동 실행
+    - cron: '0 0,12 * * *'
+  workflow_dispatch: # GitHub 페이지에서 버튼 클릭으로 언제든 즉시 수동 실행 가능
+
+jobs:
+  monitor_and_download:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install System Dependencies (FFmpeg)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install yt-dlp requests urllib3
+
+      - name: Run Watched Channels Download & Telegram Send
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python run_watched_channels.py
+
+      - name: Commit & Push Updated History
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chrono: update download history and session logs [skip ci]"
+          file_pattern: "download_history.log watched_channels.json sessions/ update_check.json"
