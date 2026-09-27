@@ -48,7 +48,7 @@ def download_mp3(youtube_url, output_dir=None, quality='128', send_telegram=Fals
     optimal_quality = calculate_optimal_bitrate(duration, max_mb=45, user_quality=quality)
 
     ydl_opts = {
-        'format': 'ba/b/18',
+        'format': '18/ba/b/best',
         'ffmpeg_location': script_dir,
         'outtmpl': os.path.join(output_dir, '%(title)s.%(ext)s'),
         'writethumbnail': True,
