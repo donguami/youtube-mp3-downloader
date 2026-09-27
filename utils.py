@@ -31,6 +31,23 @@ def setup_cookies_file():
         return cookie_path
     return None
 
+def get_extractor_args(cookie_file=None):
+    """
+    쿠키 존재 여부에 따라 최적의 player_client 목록을 동적으로 생성
+    - 쿠키 보유 시: mweb, web, android, ios (웹 브라우저 인증 지원)
+    - 쿠키 미보유 시: android, ios (봇 우회 전용)
+    """
+    if cookie_file:
+        clients = ['mweb', 'web', 'android', 'ios']
+    else:
+        clients = ['android', 'ios']
+    return {
+        'youtube': {
+            'player_client': clients,
+            'skip': ['hls', 'dash']
+        }
+    }
+
 # 파이썬 패키지 동적 설치 및 임포트 헬퍼
 def install_and_import(package):
     import importlib
