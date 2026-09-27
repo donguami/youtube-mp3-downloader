@@ -40,4 +40,5 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chrono: update download history and session logs [skip ci]"
-          file_pattern: "download_history.log watched_channels.json sessions/ update_check.json"
+          file_pattern: "."
+          skip_dirty_check: true
