@@ -6,13 +6,20 @@ on:
     - cron: '0 0,12 * * *'
   workflow_dispatch: # GitHub 페이지에서 버튼 클릭으로 언제든 즉시 수동 실행 가능
 
+permissions:
+  contents: write
+
 jobs:
   monitor_and_download:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
